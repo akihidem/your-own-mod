@@ -6,7 +6,7 @@ Your Own Mod (the `kokoro-mods` command) reads an AI user manual such as `kokoro
 
 It is for people who regularly use Claude Code and keep repeating preferences such as “answer first”, “read past typos”, “ask before pushing”, or “show whether work is still running”. A `kokoro.md` translated with a psychologist uses the same path; that assistance is optional. You can also write a short manual yourself: describe concrete situations, the response you want, and the actions that need your permission. A guided kit for writing one is in preparation and will be linked here when it is released.
 
-`kokoro.md` is a personal AI user manual following the **KOKORO specification**; the [relationship to KOKORO](#relationship-to-kokoro) is described below. Write working preferences rather than diagnosis labels or test scores; the content check rejects those labels and other forbidden content.
+`kokoro.md` is a personal AI user manual following the **KOKORO specification**. Your Own Mod was designed by a Certified Public Psychologist (公認心理師, Japan's national license for psychologists), who is also the author of the specification; the [relationship to KOKORO](#relationship-to-kokoro) is described below. Write working preferences rather than diagnosis labels or test scores; the content check rejects those labels and other forbidden content.
 
 ## Principles
 
@@ -118,7 +118,7 @@ The publish guard protects **Bash only**. Other tools and scripts that publish i
 
 ## Relationship to KOKORO
 
-The **KOKORO specification** defines `kokoro.md`, a personal AI user manual in which a psychologist translates a clinical formulation into working preferences for an AI, without passing on the clinical findings themselves. Its repository is private at the time of writing. The public part of the project is [kokoro-mcp](https://github.com/akihidem/kokoro-mcp), the loader and MCP server that signs, verifies, revokes, and delivers a `kokoro.md` to the model. Both are by the author of this tool.
+The **KOKORO specification** defines `kokoro.md`, a personal AI user manual in which a psychologist translates a clinical formulation into working preferences for an AI, without passing on the clinical findings themselves. Its repository is private at the time of writing. The public part of the project is [kokoro-mcp](https://github.com/akihidem/kokoro-mcp), the loader and MCP server that signs, verifies, revokes, and delivers a `kokoro.md` to the model. Both are by the Certified Public Psychologist (公認心理師) who designed Your Own Mod.
 
 Your Own Mod is a separate tool and not part of the specification:
 
