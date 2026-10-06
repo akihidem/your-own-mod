@@ -1,0 +1,73 @@
+# kokoro-mods parallel implementation plan (checked by plan-graph.py; DESIGN.md §10)
+nodes:
+  - id: design
+    goal: Freeze the data contracts, catalog, acceptance criteria and work split (DESIGN.md, constants)
+    owns: [docs/design/, src/constants.mjs, PLAN.yaml]
+    reads: [docs/research/]
+    provides: [iface:design]
+    done:
+      - "docs/design/DESIGN.md v0.2 has sections 5 (contracts), 8 (acceptance A1-A12) and 10 (work split)"
+      - "node --check src/constants.mjs exits 0"
+      - "plan-graph.py check PLAN.yaml exits 0"
+      - "independent design review returned no must-fix finding left open"
+    cost: 3
+  - id: w1-profile-check
+    goal: Parse kokoro.md / torisetsu.md / generic profiles into the Profile contract and run the content check
+    owns: [src/profile.mjs, src/check.mjs, test/profile.test.mjs, test/check.test.mjs, fixtures/]
+    reads: [docs/design/DESIGN.md, src/constants.mjs]
+    needs: [iface:design]
+    provides: [impl:profile]
+    done:
+      - "node --test test/profile.test.mjs test/check.test.mjs exits 0"
+      - "fixtures/valid has 3 profiles (ja kokoro, ja torisetsu, en generic), fixtures/invalid has 6 (one per F rule), fixtures/benign has 2 that pass"
+      - "every Finding for an invalid fixture carries the expected rule id"
+      - "parseProfile marks HTML comment lines as kind comment and example subsections as inExample"
+    cost: 4
+  - id: w2-catalog-match
+    goal: Implement the 17-recipe catalog, the matcher with verbatim evidence, ranking, and the proposal diff
+    owns: [src/catalog/, src/match.mjs, src/diff.mjs, test/match.test.mjs, test/diff.test.mjs]
+    reads: [docs/design/DESIGN.md, src/constants.mjs]
+    needs: [iface:design]
+    provides: [impl:match]
+    done:
+      - "node --test test/match.test.mjs test/diff.test.mjs exits 0"
+      - "every recipe has a positive and a polarity-negative test per language on hand-built Profile objects"
+      - "ranking enables at most maxEnabled proposals by default"
+      - "diffProposals reports added, removed and changed ids on hand-built bundles"
+    cost: 5
+  - id: w3-emit
+    goal: Emit <out>/plugin (manifest with userConfig, marketplace, hooks module, tests) and the private PROPOSALS.md/json from a bundle
+    owns: [src/emit.mjs, src/templates/, test/emit.test.mjs]
+    reads: [docs/design/DESIGN.md, docs/design/api-digest-w3.md, docs/design/golden/, src/constants.mjs]
+    needs: [iface:design]
+    provides: [impl:emit]
+    done:
+      - "node --test test/emit.test.mjs exits 0"
+      - "emitted plugin.json userConfig has one boolean per proposal plus typed params with title and description"
+      - "no evidence canary appears under plugin/ and the manifest and module templates take no evidence (A5)"
+      - "emitting the same bundle twice yields identical file contents (A8 test)"
+      - "claude plugin validate --strict passes on the emitted folder when claude is on PATH"
+    cost: 5
+  - id: w4-cli
+    goal: CLI (check, propose, diff, report, recipes), metrics export shape, README in en and ja, end-to-end tests
+    owns: [bin/, src/cli.mjs, src/report.mjs, src/metrics.mjs, test/cli.test.mjs, package.json, README.md, README.ja.md, .github/]
+    reads: [src/profile.mjs, src/check.mjs, src/catalog/, src/match.mjs, src/diff.mjs, src/emit.mjs, src/templates/, fixtures/, docs/design/DESIGN.md]
+    needs: [impl:profile, impl:match, impl:emit]
+    provides: [impl:cli]
+    done:
+      - "node --test test/ exits 0"
+      - "exit codes follow DESIGN.md section 9 (tested for 0, 2, 3, 4, 5) and errors carry no input excerpt (A12)"
+      - "propose on each valid fixture writes a folder that passes claude plugin validate --strict and claude plugin test"
+      - "assertMetricsExport rejects a free-text field and accepts a hand-built export"
+    cost: 4
+  - id: integrate
+    goal: Merge, run the full suite, independent review (Claude on AWS Bedrock) to PASS, record the implementation and inspection summary
+    owns: [docs/design/INTEGRATION.md]
+    reads: [src/, bin/, test/, fixtures/, README.md, README.ja.md]
+    needs: [impl:cli]
+    provides: [release:v0.1]
+    done:
+      - "node --test test/ exits 0 on the merged tree"
+      - "independent review verdict is PASS with no must-fix left open"
+      - "docs/design/INTEGRATION.md lists each worker, worktree, input commit, result commit and reviewer"
+    cost: 2

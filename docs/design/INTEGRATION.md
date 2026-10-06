@@ -1,0 +1,50 @@
+# Implementation and inspection record
+
+Who implemented what, from which input commit, where, and who inspected it. Kept so that a reader of the repository can trace each change to its worker and its reviewer without the chat history.
+
+## Inputs
+
+- Design: `docs/design/DESIGN.md` v0.2, frozen 2026-10-06 (goal anchor refrozen the same day), input commit `10e6af2`.
+- Independent design review: GPT-6 Astra on an AWS host via `ask-codex.sh ask -B astra` (`docs/research/2026-10-06-design-review-astra.md`, 33 findings; dispositions in `REVIEW-LOG.md`).
+- Plan: `PLAN.yaml`, checked by `plan-graph.py` (6 nodes, 7 edges, critical path design → w3-emit → w4-cli → integrate).
+
+## Workers (implementers)
+
+All three ran concurrently from 2026-10-06 11:15 JST (round 1: W2 11:3x, W1 11:4x, W3 12:0x; round 2 dispatched 12:3x, landed 13:1x–13:5x; round 3 for W1 and W3 dispatched 14:0x), each in its own git worktree and branch, each an AWS-hosted GPT-6 Astra invoked through `ask-codex.sh build -B astra` (the model receives the design, the constants and its prompt, returns a unified diff that is applied locally; tests run locally in the worktree). Prompts: `docs/design/prompts/`.
+
+| node | worktree / branch | input commit | result commit | rounds | tests |
+|---|---|---|---|---|---|
+| w1-profile-check | `kokoro-mods-codex-w1` / `codex-w1` | 10e6af2 | 4bf0a86 (round 3; rounds 1–2 1a63ddb, 3d73f8a) | 3 | node --test 83 pass; 18 fixtures; probes from both inspections all as designed (connector negations, three-word window, zero-width/emphasis/entity/mixed-width evasions, F43.10, you're a doctor, ウツ病, two-line terms, third-party exclusions) |
+| w2-catalog-match | `kokoro-mods-codex-w2` / `codex-w2` | 10e6af2 | 4c8b793 (round 3b matcher; 3a db18752; rounds 1–2 3bf6e87, 28360be; round 4 for the character-limit trigger dispatched) | 4 | node --test 112 pass; 25 of 26 inspection probes as designed (the remaining one: 「件名は50字以内」 still triggers the brevity rule without deriving a limit; noted for the final pass). The returned diff did not apply at one spot of the test file; the integrator applied the three rejected hunks with `patch -F3` and the tests verify them |
+| w3-emit | `kokoro-mods-codex-w3` / `codex-w3` | 10e6af2 | round 3 (see `git log codex-w3`; rounds 1–2 a4d1297, 541fb93) | 3 (+ integrator corrections) | node --test 20 pass; the plugin emitted from ja-kokoro with every recipe on passes `claude plugin validate --strict` and `claude plugin test` (10 pass); a single-recipe bundle passes (3 pass) |
+| w4-cli | `kokoro-mods-codex-w4` / `codex-w4` | 7fa8737 (integration branch after every round 3 and the W2 correction) | see `git log codex-w4` | 1 (two earlier attempts returned no diff and asked for the fixture facts and the full design, which were then attached) | node --test 254 pass; end to end: `propose` on ja-kokoro writes the folder, `claude plugin validate --strict` passes and `claude plugin test` runs 6 generated tests; `check` on an invalid fixture exits 3; a re-run prints the diff and replaces only owned files |
+
+## Inspection
+
+Independent inspection of the merged tree: Claude (Opus) on AWS Bedrock via `ask-aws.sh review` (a different model lineage from the implementer). Findings, fixes and re-checks are listed below as they happen.
+
+Round 1 inspections (Claude on Bedrock, `ask-aws.sh review -s`): W1 → `inspections/2026-10-06-w1-round1-aws-claude.md` (4 high: case-insensitive short abbreviations, negation word order, clause boundary, role-play negation; parser: inline comments swallow headings, frontmatter parsed as body, no code fences); W2 → `inspections/2026-10-06-w2-round1-aws-claude.md` (4 high: publish-guard unless cancels the guard, start-with phrase matching, max_chars 0 wording, language derivation; broad ja triggers). Every finding was either folded into DESIGN v0.2.1 or sent back to the same worker as round 2 (`prompts/w*-fix-round2.md`). W3 round 1 failed only the engine validator (see table); its round 2 prompt carries the exact rule.
+
+## Privacy pass (integrator, 2026-10-06)
+
+Before any publication the tracked tree was scanned against the operator's own manual (216 fragments): the only matches outside the KOKORO section headings were 13 accommodation phrases the designer had put into the W1 prompt and hence into `fixtures/valid/ja-kokoro.md` and one test. They were reworded (same trigger terms, different sentences; script kept outside the repository). After the pass: 0 non-heading fragments present, all 170 tests still pass, and the fixture still yields the same recipe set. Generated contract files under `docs/design/contracts/` still carry absolute local paths from the plan checker; they are replaced at publication time.
+
+## Integrator corrections (2026-10-06, after W3 round 3)
+
+Five corrections were made by the integrator rather than by a worker (the last two after W2 round 3b and W4 round 1: a character limit naming another object is not a brevity request, and the CLI passes the catalog to the emitter as a map keyed by id), each marked in the code with a comment and in the W3 round-3 commit message: (1) the emitter's fail-closed leak check uses quoted manual lines of 12+ characters as needles, not the matched trigger words (which legitimately occur in catalog text and made the check throw on a real manual); DESIGN §5.5 was aligned; (2) the generated publish-guard tests became four separate tests seeded through `mock.store`, because the testing kit refuses two bottom hooks for one event and offers no `$.store.set`; (3) the generated export test is always a separate test, because a bottom hook registered after the first `$` call is refused. The final independent inspection of the merged tree covers these changes.
+
+## Final pass (integrator, 2026-10-06, after the five final inspections)
+
+The merged tree at 7b6e003 was inspected by Claude Opus on AWS Bedrock (`ask-aws.sh review`) in five chunks sent in parallel: A parser and check, B catalog, C emitter and templates, D matcher, diff, CLI, report and metrics, E README, package, CI and end-to-end tests. Each report names what it could not judge from its attachment and which integrator-marked corrections it read; they are kept verbatim in `inspections/2026-10-06-final-*-aws-claude.md`, and `REVIEW-LOG.md` records the disposition of every finding. Verdicts: A FAIL (4 high), B FAIL (2 high), C PASS with two conditions, D FAIL (1 high), E FAIL (1 high).
+
+The findings were folded by the integrator (the Claude session running this project, not a worker) in two commits on the integration branch: f51e368 (chunk A: entity order, invisible characters, the two negation guards, tag handling, plurals and F-codes) and 49ed5d8 (chunks B to E: publish-guard polarity, character-limit adjacency, slug from `--name` only, leak needles, fail-closed pattern compilation, option defaults and clamps, state reset, export validation by position, bundle validation, export mismatch, `--help`, Node 22/24, pinned CI, and the tests that execute the generated module under Node's type stripping). The design was raised to v0.2.5 in the same pass. Every change is marked in the code with the chunk and finding it answers.
+
+Verification after the fold: `node --test test/*.test.mjs` 257/257 on Node 24.14.1, including `claude plugin validate --strict` and `claude plugin test` (Claude Code 2.1.290, empty temporary HOME) on the three valid fixtures (10, 10 and 9 generated tests ran, 0 failed); the golden plugin re-validated and re-tested after its guard was changed to compile every pattern first (4 pass); `propose` on the operator's own manual (read only, output in a scratch directory, never committed) still yields 14 proposals with no leak-check failure under the new needle policy; the five reports were scanned for fragments of that manual and for local identifiers before being filed (none).
+
+Decisions recorded against the inspections rather than folded: finding messages keep naming the matched token (§5.2, §11); the `paramsFor` throw is unreachable with this catalog; the clause-wide negative `unless` forms stay (safe side); the SIGINT leftover of the staging folder and the cooldown/running/focus/resume paths of the generated module stay untested by the generated tests. A re-inspection of the diff 7b6e003..HEAD by the same reviewer lineage follows before the merge into `main`.
+
+## Re-inspection of the fold (integrator, 2026-10-06)
+
+The diff of the fold (7b6e003..a91675c) went back to the same reviewer lineage (Claude Opus on AWS Bedrock) as eight focused requests, each with the files or diff hunks it concerned and the disposition table of its chunk: the matcher, the catalog diff, the matcher tests, the emitter and templates, the emitter tests, the CLI and report, the end-to-end tests, and the content check. Three came back FAIL (the matcher's explicit-waiver test read the matched phrase instead of the clause, so a bare 「確認なし」 counted as permission; one quiet-confirmations trigger fired on its own negation; a kana composition evasion in the checker), five PASS with medium findings. Every finding is listed with its disposition in `REVIEW-LOG.md` (section "re-inspection of the fold") and the reports are filed under `inspections/2026-10-06-reinspect-*-aws-claude.md`. The integrator folded them in one further commit; the golden plugin became the generator's own output for the English fixture (kept byte-identical by a test), and the runtime fallback of the generated module became the manifest default rather than the recipe default, a mismatch the emitter tests exposed while being strengthened.
+
+Verification after the second fold: `node --test test/*.test.mjs` 264/264 on Node 24.14.1 with Claude Code 2.1.291 (the Claude-dependent tests failed twice during the day while Claude Code replaced its own binary, 13:25 and 13:55 JST, and passed on rerun both times); the regenerated golden plugin validates and runs 10 generated tests. The chunks that failed the re-inspection are re-inspected once more against the second fold before the merge into `main`.

@@ -1,0 +1,30 @@
+{
+  "name": "kokoro-mods",
+  "version": "0.1.0",
+  "description": "Offline Claude Code plugin proposals from a personal AI user manual",
+  "type": "module",
+  "bin": {
+    "kokoro-mods": "bin/kokoro-mods.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akihidem/your-own-mod.git"
+  },
+  "homepage": "https://github.com/akihidem/your-own-mod#readme",
+  "bugs": {
+    "url": "https://github.com/akihidem/your-own-mod/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "bin",
+    "src",
+    "README*",
+    "LICENSE"
+  ]
+}

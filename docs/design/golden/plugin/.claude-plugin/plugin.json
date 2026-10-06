@@ -1,0 +1,156 @@
+{
+  "name": "kokoro-mods-golden",
+  "version": "0.1.0",
+  "description": "Mods proposed by kokoro-mods (profile 3e636f21)",
+  "author": {
+    "name": "kokoro-mods"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kokoro-mods",
+    "accessibility",
+    "claude-code-mod"
+  ],
+  "userConfig": {
+    "focus_timer": {
+      "type": "boolean",
+      "title": "Break reminder",
+      "description": "Offer timed break reminders only after activity since the previous tick.",
+      "default": false
+    },
+    "focus_timer_interval_minutes": {
+      "type": "number",
+      "title": "Break interval",
+      "description": "Minutes between break reminders.",
+      "default": 50,
+      "min": 5,
+      "max": 180
+    },
+    "lead_with_answer": {
+      "type": "boolean",
+      "title": "Lead with the answer",
+      "description": "Start with the answer and keep the necessary explanation brief.",
+      "default": true
+    },
+    "lead_with_answer_max_chars": {
+      "type": "number",
+      "title": "Maximum characters",
+      "description": "Response character limit; zero leaves it unset.",
+      "default": 0,
+      "min": 0,
+      "max": 20000
+    },
+    "lead_with_answer_max_lines": {
+      "type": "number",
+      "title": "Maximum lines",
+      "description": "Line limit used to count long answers.",
+      "default": 12,
+      "min": 3,
+      "max": 200
+    },
+    "offer_options": {
+      "type": "boolean",
+      "title": "Compare options",
+      "description": "Compare several options before recommending a choice.",
+      "default": false
+    },
+    "offer_options_max": {
+      "type": "number",
+      "title": "Maximum options",
+      "description": "Present no more than this many options.",
+      "default": 4,
+      "min": 2,
+      "max": 6
+    },
+    "offer_options_min": {
+      "type": "number",
+      "title": "Minimum options",
+      "description": "Present at least this many options.",
+      "default": 2,
+      "min": 2,
+      "max": 4
+    },
+    "one_next_step": {
+      "type": "boolean",
+      "title": "One next step",
+      "description": "Split large tasks and finish with one concrete next action.",
+      "default": true
+    },
+    "plain_language": {
+      "type": "boolean",
+      "title": "Plain language",
+      "description": "Use plain language and explain necessary technical terms.",
+      "default": false
+    },
+    "publish_guard": {
+      "type": "boolean",
+      "title": "Ask before publishing",
+      "description": "Block matching Bash publish commands until a timed grant is set; other tools and scripts that publish internally are outside this guard.",
+      "default": true
+    },
+    "publish_guard_allow_minutes": {
+      "type": "number",
+      "title": "Grant duration",
+      "description": "Minutes a publishing grant remains valid.",
+      "default": 30,
+      "min": 1,
+      "max": 720
+    },
+    "publish_guard_patterns": {
+      "type": "string",
+      "title": "Guarded command patterns",
+      "description": "Regular expressions checked against Bash commands.",
+      "default": [
+        "\\bgit\\s+(-C\\s+\\S+\\s+)?push\\b",
+        "\\bgh\\s+(pr|issue)\\s+create\\b",
+        "\\bgh\\s+repo\\s+(create|edit|delete)\\b",
+        "\\bgh\\s+release\\s+create\\b",
+        "\\bnpm\\s+publish\\b"
+      ],
+      "multiple": true
+    },
+    "respect_stop_signals": {
+      "type": "boolean",
+      "title": "Respect stop signals",
+      "description": "Acknowledge a stop signal and end without another task or question.",
+      "default": false
+    },
+    "respect_stop_signals_phrases": {
+      "type": "string",
+      "title": "Stop phrases",
+      "description": "Match a whole utterance with only trailing punctuation, whitespace and up to six characters of Japanese particles, ahead of fragment acknowledgement.",
+      "default": [
+        "一旦やめる",
+        "あとで",
+        "終わり",
+        "おわり",
+        "一旦ここまで",
+        "stop for now",
+        "that's enough",
+        "let's stop",
+        "wrap up"
+      ],
+      "multiple": true
+    },
+    "running_indicator": {
+      "type": "boolean",
+      "title": "Show ongoing work",
+      "description": "Show elapsed time and tool activity, with a notice for long turns.",
+      "default": false
+    },
+    "running_indicator_long_turn_seconds": {
+      "type": "number",
+      "title": "Long-turn threshold",
+      "description": "Seconds before a long-turn notice.",
+      "default": 120,
+      "min": 10,
+      "max": 3600
+    },
+    "session_resume_brief": {
+      "type": "boolean",
+      "title": "Brief session history",
+      "description": "On resuming, show only days since the last session and its turn count.",
+      "default": false
+    }
+  }
+}

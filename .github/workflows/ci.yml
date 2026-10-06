@@ -1,0 +1,39 @@
+name: CI
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      # Actions are pinned to commit hashes (v4 tags, resolved 2026-10-06).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: ${{ matrix.node }}
+      # The version the generated plugins were checked against (README); a newer Claude Code
+      # is validated deliberately, not by whatever npm serves on the day.
+      - name: Install Claude Code
+        id: claude-install
+        continue-on-error: true
+        run: npm install -g @anthropic-ai/claude-code@2.1.290 && claude --version
+      - name: Report an unverified A2
+        if: steps.claude-install.outcome == 'failure'
+        run: |
+          echo "::warning::Claude Code did not install; A2 (claude plugin validate/test) is unverified in this run"
+          if [ "${{ github.ref }}" = "refs/heads/main" ] || [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "A2 must be verified on main and on tags"; exit 1
+          fi
+      - name: Run Node and generated plugin tests
+        env:
+          KOKORO_MODS_SKIP_CLAUDE: ${{ steps.claude-install.outcome == 'failure' && '1' || '' }}
+        run: node --test test/*.test.mjs
+      - name: Validate the golden plugin
+        if: steps.claude-install.outcome == 'success'
+        run: claude plugin validate --strict docs/design/golden/plugin

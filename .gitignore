@@ -1,0 +1,9 @@
+node_modules/
+out/
+*.log
+.DS_Store
+# generated plugin folders go under out/ (user data, never commit)
+# personal profiles must never be committed: keep them outside the repo
+kokoro.md
+torisetsu.md
+*.private.md

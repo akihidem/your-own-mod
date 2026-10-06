@@ -1,0 +1,13 @@
+{
+  "name": "kokoro-mods-golden",
+  "description": "Mods proposed by kokoro-mods (profile 3e636f21)",
+  "owner": {
+    "name": "kokoro-mods"
+  },
+  "plugins": [
+    {
+      "name": "kokoro-mods-golden",
+      "source": "./"
+    }
+  ]
+}
