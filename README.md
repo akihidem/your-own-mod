@@ -12,7 +12,7 @@ The plugin counts selected actions without recording what you or the AI wrote. Y
 
 This is for people who use Claude Code regularly and keep saying “answer first”, “read past typos”, “ask before pushing”, or “show whether work is still running”.
 
-You can use a `kokoro.md` translated with a psychologist in the same way. That help is optional. You can also write a short manual yourself. Describe concrete situations, how you want the AI to respond, and which actions need your permission. A kit to guide you through writing one is in preparation. We will link to it here when it is released.
+You can use a `kokoro.md` translated with a psychologist in the same way. That help is optional. You can also write a short manual yourself. Describe concrete situations, how you want the AI to respond, and which actions need your permission.
 
 `kokoro.md` is a personal AI user manual that follows the **KOKORO specification**. Your Own Mod was designed by a Certified Public Psychologist (公認心理師, Japan's national license for psychologists), who also wrote the specification. The [relationship to KOKORO](#relationship-to-kokoro) is explained below.
 
